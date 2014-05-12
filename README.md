@@ -1,6 +1,6 @@
 libnettracer
 ============
-A crude method of logging/recording network traffic to/from an application.
+A crude method of logging/recording network traffic initiated an application.
 
 The main executable is the nettracer shell script.
 
