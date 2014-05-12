@@ -1,0 +1,12 @@
+#!/bin/bash -e
+
+if [ $# -lt '2' ]
+then
+    echo "USAGE: $0 <file path> <executable> <other params>"
+    exit 1
+fi
+
+export LD_PRELOAD=/home/kmendoza/libnettracer/libnettracer.so
+export NETTRACE_FILE_PATH=${1}
+shift
+$*
