@@ -20,8 +20,6 @@
     #include <dlfcn.h>
 #endif
 
-#define PRINT_DBG
-
 #ifdef PRINT_DBG
     #define DEBUG(a) a
 #else
@@ -33,14 +31,14 @@ using namespace std;
 ofstream outFile;
 map<int, string>fdList; 
 
-void saveData(int __fd, __const void *buf, size_t __n)
+void saveData(int __fd, __const void *buf, size_t __n, const string &dir)
 {
     try
     {
         auto val = fdList.at(__fd);
         if(outFile.is_open())
         {
-            outFile<<val<<"=";
+            outFile<<val<<" "<<dir<<"=";
             const char *b = (const char *)buf;
             for(int i=0; i<(__n/sizeof(char)); i++)
                 outFile.put(b[i]);
@@ -121,7 +119,7 @@ ssize_t send (int __fd, __const void *__buf, size_t __n, int __flags)
         real_func = *reinterpret_cast<REAL_FUNC *>(&t);
     }
 
-    saveData(__fd, __buf, __n);
+    saveData(__fd, __buf, __n, "to");
 
     return real_func(__fd, __buf, __n, __flags);
 }
@@ -138,7 +136,7 @@ ssize_t recv (int __fd, void *__buf, size_t __n, int __flags)
         real_func = *reinterpret_cast<REAL_FUNC *>(&t);
     }
 
-    saveData(__fd, __buf, __n);
+    saveData(__fd, __buf, __n, "from");
 
     return real_func(__fd, __buf, __n, __flags);
 }
@@ -155,7 +153,7 @@ ssize_t read (int __fd, void *__buf, size_t __n)
         real_func = *reinterpret_cast<REAL_FUNC *>(&t);
     }
 
-    saveData(__fd, __buf, __n);
+    saveData(__fd, __buf, __n, "from");
 
     return real_func(__fd, __buf, __n);
 }
@@ -172,7 +170,7 @@ ssize_t write (int __fd, void *__buf, size_t __n)
         real_func = *reinterpret_cast<REAL_FUNC *>(&t);
     }
 
-    saveData(__fd, __buf, __n);
+    saveData(__fd, __buf, __n, "to");
 
     return real_func(__fd, __buf, __n);
 }
@@ -189,7 +187,7 @@ ssize_t sendto (int __fd, __const void *__buf, size_t __n, int __flags, __CONST_
         real_func = *reinterpret_cast<REAL_FUNC *>(&t);
     }
 
-    saveData(__fd, __buf, __n);
+    saveData(__fd, __buf, __n, "to");
 
     return real_func(__fd, __buf, __n, __flags, __addr, __addr_len);
 }
@@ -206,7 +204,7 @@ ssize_t recvfrom (int __fd, void *__restrict __buf, size_t __n, int __flags, __S
         real_func = *reinterpret_cast<REAL_FUNC *>(&t);
     }
 
-    saveData(__fd, __buf, __n);
+    saveData(__fd, __buf, __n, "from");
 
     return real_func(__fd, __buf, __n, __flags, __addr, __addr_len);
 }
