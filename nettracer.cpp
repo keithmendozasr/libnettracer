@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <cstring>
 #include <sstream>
+#include <cstdlib>
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -52,13 +53,15 @@ int connect (int __fd, __CONST_SOCKADDR_ARG __addr, socklen_t __len)
     typedef int (*REAL_FUNC)(int, __CONST_SOCKADDR_ARG, socklen_t);
     static REAL_FUNC real_func = NULL;
 
-    if(outFile.is_open() == false)
+    char *filePath = getenv("NETTRACE_FILE_PATH");
+
+    if(outFile.is_open() == false && filePath != NULL)
     {
-        outFile.open("iplist.txt");
+        outFile.open(filePath);
         if(outFile.fail())
         {
             int err = errno;
-            cerr<<"Failed to open iplist.txt. Cause: "<<strerror(err)<<endl;
+            cerr<<"Failed to open "<<filePath<<". Cause: "<<strerror(err)<<endl;
         }
     }
     
