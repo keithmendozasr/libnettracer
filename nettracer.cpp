@@ -4,6 +4,8 @@
 #include <cstring>
 #include <sstream>
 #include <cstdlib>
+#include <map>
+#include <stdexcept>
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -29,22 +31,30 @@
 using namespace std;
 
 ofstream outFile;
+map<int, string>fdList; 
 
 void saveData(int __fd, __const void *buf, size_t __n)
 {
-   if(outFile.is_open())
-   {
-        outFile<<"FD="<<__fd<<"\tdata=";
-        outFile.write((const char *)buf, (__n/sizeof(char)));
-        const char *b = (const char *)buf;
-        for(int i=0; i<(__n/sizeof(char)); i++)
-            outFile.put(b[i]);
-        outFile<<endl;
-    }
-    else
+    try
     {
-        cout<<"FD="<<__fd<<"\tdata="
-            <<buf<<endl;
+        auto val = fdList.at(__fd);
+        if(outFile.is_open())
+        {
+            outFile<<val<<"=";
+            const char *b = (const char *)buf;
+            for(int i=0; i<(__n/sizeof(char)); i++)
+                outFile.put(b[i]);
+            outFile<<endl;
+        }
+        else
+        {
+            cout<<"FD="<<__fd<<"\tdata="
+                <<buf<<endl;
+        }
+    }
+    catch(out_of_range &e)
+    {
+        DEBUG(cout<<"Not tracking "<<__fd<<endl);
     }
 }
 
@@ -83,12 +93,14 @@ int connect (int __fd, __CONST_SOCKADDR_ARG __addr, socklen_t __len)
         }
         else
         {
-            ostringstream msg;
-            msg<<"FD="<<__fd<<"\tdest="<<dest<<":"<<ntohs(s->sin_port);
-            if(outFile.is_open())
-                outFile<<msg.str()<<endl;
-            else
-                cout<<msg.str()<<endl;
+            ostringstream tmp;
+            tmp<<dest<<":"<<ntohs(s->sin_port);
+            auto ret = fdList.insert(pair<int, string>(__fd, tmp.str()));
+            if(ret.second == false)
+            {
+                DEBUG(cout<<"Replacing "<<ret.first->first<<" with "<<tmp.str()<<endl);
+                ret.first->second = tmp.str();
+            }
         }
     }
     else
