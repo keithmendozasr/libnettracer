@@ -208,3 +208,31 @@ ssize_t recvfrom (int __fd, void *__restrict __buf, size_t __n, int __flags, __S
 
     return real_func(__fd, __buf, __n, __flags, __addr, __addr_len);
 }
+
+int close(int fd)
+{
+    typedef int(*REAL_FUNC)(int);
+    static REAL_FUNC real_func = NULL;
+
+    if(real_func == NULL)
+    {
+        DEBUG(cout<<"Getting old close"<<endl);
+        void *t = dlsym(RTLD_NEXT, "close");
+        real_func = *reinterpret_cast<REAL_FUNC*>(&t);
+    }
+
+    try
+    {
+        auto val = fdList.at(fd);
+        if(outFile.is_open())
+            outFile<<"Connection to "<<val<<" closed"<<endl;
+        else
+            cout<<"Connection to "<<val<<" closed"<<endl;
+    }
+    catch(out_of_range &e)
+    {
+        DEBUG(cout<<"Not tracking "<<fd<<endl);
+    }
+
+    return real_func(fd);
+}
